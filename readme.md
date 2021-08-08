@@ -4,7 +4,7 @@
 A Mircosoft windows application that provides virtual keyboard status lights.
 Belive it or not some keyboards don't have status lights. Like mine :(.
 
-[my dusty keyboard, don't judge](/screenshots/my_keboard.jpg)
+![my dusty keyboard, don't judge](/screenshots/my_keboard.jpg)
 
 This application implements a mechanism of knowing the state of the caps, scroll and num lock keys.
 
