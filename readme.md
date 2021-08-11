@@ -27,5 +27,5 @@ If you have ideas of features, open an issue we see what we can do about that.
   
 ## License
 
-[MIT](https://choosealicense.com/licenses/mit/)
+[GNU General Public License v3.0](/LICENSE)
 
