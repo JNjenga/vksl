@@ -7,6 +7,8 @@ This application implements a mechanism of knowing the state of the caps, scroll
 
 ![Demo](./screenshots/vksl_capture.gif)
 
+Read article [https://jnjenga.com/projects/vksl/](https://jnjenga.com/projects/vksl/)
+
 ## Build 
 
 Run the `build.bat` file located in the root directory, You will need to have microsoft's `cl.exe`
