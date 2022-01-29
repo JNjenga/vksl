@@ -1,9 +1,11 @@
-#include <windows.h>
 #include <iostream>
 
 #ifndef UNICODE
 #define UNICODE
 #endif
+
+#include <windows.h>
+#include <tchar.h>
 
 #pragma comment(lib, "Advapi32.lib")
 
@@ -18,11 +20,11 @@ bool is_scroll_on = false;
 bool is_num_on    = false;
 
 HKEY   hkey;
-LPCSTR subkey       = TEXT("SOFTWARE\\Jnjenga\\VKSL");
-LPCSTR x_option     = TEXT("x");
-LPCSTR y_option     = TEXT("y");
+LPWSTR subkey       = TEXT("SOFTWARE\\Jnjenga\\VKSL");
+LPWSTR x_option     = TEXT("x");
+LPWSTR y_option     = TEXT("y");
 
-LPCSTR active_color_option = TEXT("active_color");
+LPWSTR active_color_option = TEXT("active_color");
 
 // Active color
 int r = 0;
@@ -32,8 +34,8 @@ int b = 0;
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 
 int WINAPI wWinMain(HINSTANCE hInstance,
-		    HINSTANCE hPrevInstance,
-		    PWSTR pCmdLine,
+		    HINSTANCE,
+		    LPWSTR ,
 		    int nCmdShow)
 {
 	// Create or open reg key
@@ -60,7 +62,7 @@ int WINAPI wWinMain(HINSTANCE hInstance,
 	}
 
 	// Get reg x and y values
-	lStatus = RegGetValueA(HKEY_CURRENT_USER,
+	lStatus = RegGetValue(HKEY_CURRENT_USER,
 			       subkey,
 			       x_option,
 			       RRF_RT_REG_DWORD,
@@ -75,7 +77,7 @@ int WINAPI wWinMain(HINSTANCE hInstance,
 		return -1;
 	}
 
-	lStatus = RegGetValueA(HKEY_CURRENT_USER,
+	lStatus = RegGetValue(HKEY_CURRENT_USER,
 			       subkey,
 			       y_option,
 			       RRF_RT_REG_DWORD,
@@ -91,7 +93,7 @@ int WINAPI wWinMain(HINSTANCE hInstance,
 	}
 
 	// Get active color value
-	lStatus = RegGetValueA(HKEY_CURRENT_USER,
+	lStatus = RegGetValue(HKEY_CURRENT_USER,
 			       subkey,
 			       active_color_option,
 			       RRF_RT_REG_DWORD,
@@ -111,24 +113,27 @@ int WINAPI wWinMain(HINSTANCE hInstance,
 	g = (active_color << 8) >> 24;
 	b = (active_color << 16) >> 24;
 
-	MSG msg = {};
-	HWND hwnd = {};
-	WNDCLASSW wc = {};
+	MSG msg       = {};
+	HWND hwnd     = {};
+	WNDCLASSEX wc = {};
 
+	wc.cbSize        = sizeof(wc);
 	wc.style         = CS_HREDRAW | CS_VREDRAW;
 	wc.cbClsExtra    = 0;
 	wc.cbWndExtra    = 0;
-	wc.lpszClassName = L"VirtualKeyboardStatusLightsClass";
+	wc.lpszClassName = TEXT("VirtualKeyboardStatusLightsClass");
 	wc.hInstance     = hInstance;
 	wc.hbrBackground = GetSysColorBrush(COLOR_3DFACE);
 	wc.lpszMenuName  = NULL;
 	wc.lpfnWndProc   = WndProc;
 	wc.hCursor       = LoadCursor(NULL, IDC_ARROW);
-	wc.hIcon         = LoadIcon(NULL, IDI_APPLICATION);
+	wc.hIconSm       = LoadIcon(NULL, IDI_HAND);
+	wc.hIcon         = LoadIcon(NULL, IDI_HAND);
 
-	RegisterClassW(&wc);
-	hwnd = CreateWindowW(wc.lpszClassName,
-			     L"vksl v0.1",
+	RegisterClassEx(&wc);
+	hwnd = CreateWindowEx(0,
+			wc.lpszClassName,
+			TEXT("vksl v0.1"),
 			     WS_OVERLAPPEDWINDOW | WS_VISIBLE,
 			     x_value, y_value,
 			     170, 100,
@@ -144,7 +149,6 @@ int WINAPI wWinMain(HINSTANCE hInstance,
 	SetWindowLong(hwnd, GWL_STYLE, lStyle);
 	SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE );
 
-
 	RegisterHotKey(NULL, VK_CAPITAL, MOD_NOREPEAT, VK_CAPITAL);
 	RegisterHotKey(NULL, VK_NUMLOCK, MOD_NOREPEAT, VK_NUMLOCK);
 	RegisterHotKey(NULL, VK_SCROLL,  MOD_NOREPEAT, VK_SCROLL);
@@ -154,17 +158,17 @@ int WINAPI wWinMain(HINSTANCE hInstance,
 		DispatchMessage(&msg);
 		if (msg.message == WM_HOTKEY)
 		{
-			auto key_code = msg.wParam;
+		int key_code = (int)msg.wParam;
 
 			// Todo(James): Investigate if there is a better way of doing this
 			// If removed windows will not register the key since it is registered as a hot key 
 			// i.e Key will not be turned on/off
 			UnregisterHotKey(NULL, key_code);
-			keybd_event( key_code,
+			keybd_event( (BYTE)key_code,
 					0x45,
 					KEYEVENTF_EXTENDEDKEY | 0,
 					0 );
-			keybd_event( key_code,
+			keybd_event( (BYTE)key_code,
 					0x45,
 					KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP,
 					0);
