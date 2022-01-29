@@ -1,7 +1,13 @@
 #include <windows.h>
 #include <iostream>
 
-#define ON_RGB RGB(255, 0, 0)
+#ifndef UNICODE
+#define UNICODE
+#endif
+
+#pragma comment(lib, "Advapi32.lib")
+
+#define ON_RGB RGB(r, g, b)
 #define OFF_RGB RGB(128,128,128)
 
 int width;
@@ -11,6 +17,17 @@ bool is_caps_on   = false;
 bool is_scroll_on = false;
 bool is_num_on    = false;
 
+HKEY   hkey;
+LPCSTR subkey       = TEXT("SOFTWARE\\Jnjenga\\VKSL");
+LPCSTR x_option     = TEXT("x");
+LPCSTR y_option     = TEXT("y");
+
+LPCSTR active_color_option = TEXT("active_color");
+
+// Active color
+int r = 0;
+int g = 0;
+int b = 0;
 
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 
@@ -19,6 +36,81 @@ int WINAPI wWinMain(HINSTANCE hInstance,
 		    PWSTR pCmdLine,
 		    int nCmdShow)
 {
+	// Create or open reg key
+	LONG   lStatus;
+	DWORD  disposition;
+	DWORD  x_value, y_value, active_color;
+	DWORD  type;
+	DWORD  option_size = sizeof(int);
+
+	lStatus = RegCreateKeyEx(HKEY_CURRENT_USER,
+				 subkey, 
+				 0,
+				 NULL,
+				 REG_OPTION_NON_VOLATILE,
+				 KEY_WRITE,
+				 NULL,
+				 &hkey,
+				 &disposition);
+
+	if(lStatus != ERROR_SUCCESS)
+	{
+		printf("Some error occured in RegCreateKeyEx()\n");
+		return -1;
+	}
+
+	// Get reg x and y values
+	lStatus = RegGetValueA(HKEY_CURRENT_USER,
+			       subkey,
+			       x_option,
+			       RRF_RT_REG_DWORD,
+			       &type,
+			       &x_value,
+			       &option_size);
+
+	if(lStatus != ERROR_SUCCESS)
+	{
+		// TODO: Warning/error window
+		printf("Some error occured when RegGetValueEx(): x_value\n");
+		return -1;
+	}
+
+	lStatus = RegGetValueA(HKEY_CURRENT_USER,
+			       subkey,
+			       y_option,
+			       RRF_RT_REG_DWORD,
+			       &type,
+			       &y_value,
+			       &option_size);
+
+	if(lStatus != ERROR_SUCCESS)
+	{
+		// TODO: Warning/error window
+		printf("Some error occured when RegGetValueEx(): y_value\n");
+		return -1;
+	}
+
+	// Get active color value
+	lStatus = RegGetValueA(HKEY_CURRENT_USER,
+			       subkey,
+			       active_color_option,
+			       RRF_RT_REG_DWORD,
+			       &type,
+			       &active_color,
+			       &option_size);
+
+	if(lStatus != ERROR_SUCCESS)
+	{
+		// TODO: Warning/error window
+		printf("Some error occured when RegGetValueEx(): y_value\n");
+		return -1;
+	}
+
+	// Set r,g,b values
+	r = (active_color >> 24);
+	g = (active_color << 8) >> 24;
+	b = (active_color << 16) >> 24;
+
 	MSG msg = {};
 	HWND hwnd = {};
 	WNDCLASSW wc = {};
@@ -38,7 +130,7 @@ int WINAPI wWinMain(HINSTANCE hInstance,
 	hwnd = CreateWindowW(wc.lpszClassName,
 			     L"vksl v0.1",
 			     WS_OVERLAPPEDWINDOW | WS_VISIBLE,
-			     100, 100,
+			     x_value, y_value,
 			     170, 100,
 			     NULL, NULL,
 			     hInstance,
@@ -101,7 +193,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg,
 	{
 		case WM_CREATE:
 		{
-			width = GetSystemMetrics(SM_CXSCREEN);
+			width  = GetSystemMetrics(SM_CXSCREEN);
 			height = GetSystemMetrics(SM_CYSCREEN);
 
 			// Initial state of keys lock
@@ -117,6 +209,42 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg,
 		} break;
 		case WM_DESTROY:
 		{
+			// Update registry values
+			RECT window_rect;
+			if(GetWindowRect(hwnd, &window_rect) != 0)
+			{
+				LONG   lStatus;
+				DWORD x = window_rect.left;
+				DWORD y = window_rect.top;
+
+				// Set reg values 
+				lStatus = RegSetValueEx(hkey,
+						        x_option,
+							0,
+							REG_DWORD,
+							(const BYTE*)&x,
+							sizeof(int));
+				if(lStatus != ERROR_SUCCESS)
+				{
+					// TODO(James): Warning/Error window
+					printf("Some error occured in RegSetValueEx(): x\n");
+					return -1;
+				}
+
+				// Set reg values 
+				lStatus = RegSetValueEx(hkey,
+						        y_option,
+							0,
+							REG_DWORD,
+							(const BYTE*)&y,
+							sizeof(int));
+				if(lStatus != ERROR_SUCCESS)
+				{
+					// TODO(James): Warning/Error window
+					printf("Some error occured in RegSetValueEx(): y\n");
+					return -1;
+				}
+			}
 			PostQuitMessage(0);
 		} break;
 		case WM_PAINT:
