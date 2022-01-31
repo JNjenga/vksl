@@ -27,7 +27,7 @@ LPWSTR y_option     = TEXT("y");
 LPWSTR active_color_option = TEXT("active_color");
 
 // Active color
-int r = 0;
+int r = 255;
 int g = 0;
 int b = 0;
 
@@ -92,6 +92,8 @@ int WINAPI wWinMain(HINSTANCE hInstance,
 		return -1;
 	}
 
+	active_color = 0xff1313ff;
+
 	// Get active color value
 	lStatus = RegGetValue(HKEY_CURRENT_USER,
 			       subkey,
@@ -113,6 +115,8 @@ int WINAPI wWinMain(HINSTANCE hInstance,
 	g = (active_color << 8) >> 24;
 	b = (active_color << 16) >> 24;
 
+	// TODO(James): Load icon
+
 	MSG msg       = {};
 	HWND hwnd     = {};
 	WNDCLASSEX wc = {};
@@ -127,8 +131,8 @@ int WINAPI wWinMain(HINSTANCE hInstance,
 	wc.lpszMenuName  = NULL;
 	wc.lpfnWndProc   = WndProc;
 	wc.hCursor       = LoadCursor(NULL, IDC_ARROW);
-	wc.hIconSm       = LoadIcon(NULL, IDI_HAND);
-	wc.hIcon         = LoadIcon(NULL, IDI_HAND);
+	wc.hIconSm       = LoadIcon(NULL, IDI_ASTERISK);
+	wc.hIcon         = LoadIcon(NULL, IDI_ASTERISK);
 
 	RegisterClassEx(&wc);
 	hwnd = CreateWindowEx(0,
