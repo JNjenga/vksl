@@ -1,9 +1,9 @@
 
 # VKSL(Virtual keyboard status lights)
 
-A Mircosoft windows application that provides virtual keyboard status lights.
+A Mircosoft windows application that shows the status of the caps lock, num lock and scroll lock keys.
 Beleive it or not some keyboards don't have status lights. Like mine :(.
-This application implements a mechanism of knowing the state of the caps, scroll and num lock keys.
+This application implements a mechanism of knowing their state.
 
 ![Demo](./screenshots/vksl_capture.gif)
 
@@ -19,8 +19,9 @@ Here are some of the things I'm yet to implement
 
 - Configuration management
 - UI improvement
+- Add an icon
 
-If you have ideas of features, open an issue we see what we can do about that. 
+If you have ideas of features, open an issue we see what we can do about that!
 
 ## Authors
 
